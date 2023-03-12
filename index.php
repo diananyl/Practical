@@ -94,6 +94,7 @@ $trendFilter = array('PROPERTY_TREND' => '4');
 		"SHOW_OLD_PRICE" => "Y",
 		"SHOW_CLOSE_POPUP" => "N",
 		"MESS_BTN_BUY" => "Купить",
+		"MESS_BTN_ONE_CLICK" => "Купить в один клик",
 		"MESS_BTN_ADD_TO_BASKET" => "В корзину",
 		"MESS_BTN_SUBSCRIBE" => "Подписаться",
 		"MESS_BTN_DETAIL" => "Подробнее",
