@@ -384,7 +384,7 @@
 .btn.product-item-detail-buy-button-one-click {
 	position: relative;
 	display: block;
-	margin: 5% 0;
+	margin: 5% auto;
 	max-width: 250px;
 	width: 100%;
 	padding-top: 12px;
@@ -392,8 +392,6 @@
 	font-weight: bold;
 	text-transform: uppercase;
 }
-
-
 
 .product-item-detail-short-card-btn .btn.product-item-detail-buy-button { margin: 0; }
 
@@ -413,7 +411,112 @@
 .btn-link.product-item-detail-buy-button { height: 25px; }
 
 /*endregion*/
+/*pop_up one click order */
+.pop_up{
+	display: none;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background-color:  rgba(41, 41, 43, 0.705) ;
+	top: 0;
+	left: 0;
+	z-index: 320;	
+}
 
+.pop_up_body{
+	display: flex;
+	width: 100%;
+	height: 100%;
+	padding: 30px 10px;
+}
+
+.pop_up_content{
+	margin: auto;
+	width: 400px;
+	
+	background-color: #fff;
+	border-radius: 7px;
+	text-align: center;
+	padding: 25px 10px 25px 15px;
+	position: relative;	
+}
+
+.pop_up_header{	
+    margin: auto;
+    border-bottom: 2px solid #63aa28;
+	border-bottom-width: 2px !important;
+}
+
+.pop_up_header_title{
+	font-weight: bold;
+	font-size: 20px;	
+	text-transform: uppercase;
+	color: #000;	
+	padding: 20px 12px 20px;
+}
+
+.pop_up_btn{
+	position: relative;
+	display: block;
+	margin: 5% auto;
+	width: 330px;
+	padding-top: 12px;
+	padding-bottom: 12px;
+	font-weight: bold;
+	text-transform: uppercase;
+	color: #ddd;
+	border-radius: 3px;
+	border: none;
+	background-color: #63aa28;
+}
+
+.pop_up_close{
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	font-size: 21px;
+	cursor: pointer;
+}
+
+.pop_up_body input{
+	display: block;
+	margin: 25px auto 0px auto;
+	width: 330px;
+	padding: 17px 20px;
+	padding-top: 12px;
+	padding-bottom: 12px;
+	background-color: #e5e5e5;
+	border-radius: 3px;
+	border: none;
+}
+
+.pop_up_comment{
+	display: block;
+	margin: 25px auto 0px auto;
+	width: 330px;
+	padding: 17px 20px;
+	padding-top: 12px;
+	padding-bottom: 12px;
+	background-color: #e5e5e5;
+	border-radius: 3px;
+	border: none;
+}
+
+.pop_up_comment:focus{
+	outline: none;
+}
+
+.pop_up_body input:focus{
+	outline: none;
+}
+
+.pop_up_body button:focus{
+	outline: none;
+}
+
+
+
+/*endregion*/
 /*region Slider */
 .product-item-detail-slider-container {
 	position: relative;

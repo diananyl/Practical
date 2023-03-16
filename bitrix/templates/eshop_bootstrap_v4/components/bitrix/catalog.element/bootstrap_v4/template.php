@@ -2,6 +2,7 @@
 if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 use Bitrix\Main\Localization\Loc;
+use Bitrix\Report\VisualConstructor\Fields\Div;
 
 /**
 * @global CMain $APPLICATION
@@ -724,30 +725,23 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 													<a class="btn <?=$buyButtonClassName?> product-item-detail-buy-button"
 														id="<?=$itemIds['BUY_LINK']?>"
 														href="javascript:void(0);">
-														<?=$arParams['MESS_BTN_BUY']?>
-													<a class="btn <?=$buyOneClickButton?> product-item-detail-buy-button-one-click"
-														id="<?=$itemIds['BUY_ONE_CLICK']?>"
-														href="javascript:void(0);">
-														<?=$arParams['MESS_BTN_ONE_CLICK']?> Купить в один клик
+														<?=$arParams['MESS_BTN_BUY']?>													
 													</a>
+													<a class="btn one click order <?=$buyOneClickButton?> product-item-detail-buy-button-one-click"
+														id="btnOneClick"
+														href="javascript:void(0)" onclick="openFormPopup()"> 
+														Купить в один клик
 													</a>
 												</div>
 												
 												<?php
 											}
-											if ($showBuyBtnOneClick)
-											{
+											
 												?>
-												<div class="mb-3">
-													<a class="btn <?=$buyOneClickButton?> product-item-detail-buy-button_one_click"
-														id="<?=$itemIds['BUY_ONE_CLICK']?>"
-														href="javascript:void(0);">
-														<?=$arParams['MESS_BTN_ONE_CLICK']?>
-													</a>
-												</div>
+												
 												
 												<?php
-											}
+											
 											?>
 										</div>
 									</div>
@@ -779,11 +773,49 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 									<div class="mb-3" id="<?=$itemIds['NOT_AVAILABLE_MESS']?>" style="display: <?=(!$actualItem['CAN_BUY'] ? '' : 'none')?>;">
 										<a class="btn btn-primary product-item-detail-buy-button" href="javascript:void(0)" rel="nofollow"><?=$arParams['MESS_NOT_AVAILABLE']?></a>
 									</div>
+									<div class="pop_up" id="popUp">
+										<div class="pop_up_body" id="popUpBody">										
+											<div class="pop_up_content" id="pop_up_content">
+												<div class="pop_up_header">
+													<h3	class="pop_up_header_title">Купить в один клик</h3>
+												</div>																						
+												<form id="one_click_form" name="one_click_form" action="/one_click_order/handler.php" method="POST">
+													<input type="text" placeholder="Ваше имя">
+													<input type="text" placeholder="Ваш E-mail">
+													<textarea class="pop_up_comment" placeholder="Комментарий к заказу"></textarea>
+													<button class="pop_up_btn">Оформить заказ</button>													
+												</form>
+												<div class="pop_up_close" id="popupclose">&#10006</div>
+												
+											</div>
+										</div>
+									</div>
+									<script>
+										let popup=document.getElementById('popUp'),
+											popupbody=document.getElementById('popUpBody'),
+											popupButton=document.getElementById('btnOneClick'),
+											popupClose = document.getElementById('popupclose');
+											
+
+											popupButton.onclick = function(){
+												popup.style.display="block";
+											}
+
+											popupClose.onclick = function () {
+												popup.style.display="none";
+											}
+											window.onclick = function(e){
+												
+												if (e.target == popupbody) {
+													popup.style.display="none";
+												}
+											}
+									</script>
 									<?php
 									break;
 							}
 						}
-
+						
 						if ($arParams['DISPLAY_COMPARE'])
 						{
 							?>
