@@ -787,7 +787,6 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 													<h3	class="pop_up_header_title">Купить в один клик</h3>
 												</div>																						
 												<form id="one_click_form" name="one_click_form" method="post">
-												<input type="hidden" name="product_id" value="<?= $ID ?>">
 													<input type="text" name="user_name" placeholder="Ваше имя">
 													<input type="text" name="user_email" placeholder="Ваш E-mail">
 													<textarea class="pop_up_comment" name="user_comment" placeholder="Комментарий к заказу"></textarea>
@@ -824,12 +823,11 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 									?>
 									<!--Код создания заказа в карточке товара-->
 									<?php
-										if (isset($_POST['pop_up_btn_order'])){
+										if (isset($_POST['pop_up_btn_order']) && !empty($_POST['user_name']) && !empty($_POST['user_email'])){
 											
-
 											$comment= $_REQUEST['user_comment'];
-											$email = $_REQUEST['user_email'];
-											$name = $_REQUEST['user_name'];											
+											$email = $_POST['user_email'];
+											$name = $_POST['user_name'];											
 												
 											$products = [
 												[
@@ -841,7 +839,6 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 													'QUANTITY' => 1, 
 												]
 											];
-										
 											
 											$basket = Bitrix\Sale\Basket::create('s1');
 											
@@ -852,37 +849,39 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 												$item->setFields($product);
 											}
 											
-											$siteId = 's1'; // код сайта
+											$siteId = 's1'; // код сайта																		
+																			
 											
-											$userId = $USER->GetID(); // ID пользователя
-											if(!$userId )
-														{															
-															$pass = rand(100000, 999999);														
-															$groups = array(3,4,5);         
-															$userId = $USER->Add(array(
-																"NAME"              => $_POST['user_name'],
-																"EMAIL"             => $_POST['user_email'],
-																"LOGIN"             => $_POST['user_email'],																
-																"LID"               => "ru",
-																"ACTIVE"            => "Y",
-																"GROUP_ID"          => $groups,
-																"PASSWORD"          => $pass,
-																"CONFIRM_PASSWORD"  => $pass,
-															));
-															$USER->Authorize($userId);
-															$error_text = $USER->LAST_ERROR;
-														}
-														if ($userId > 0){
-											$order = \Bitrix\Sale\Order::create($siteId, $userId);
 											
+											$order = \Bitrix\Sale\Order::create($siteId, ($USER->IsAuthorized()) ? $USER->GetID() : \CSaleUser::GetAnonymousUserID());
 											$order->setPersonTypeId(1); // 1 - ID типа плательщика
+											if(!$USER){
+												$pass = rand(100000, 999999);
+												//группы, в которых он будет состоять
+												$groups = array(3,4,5);   
+												$user = new CUser;
+												$arFields = Array(
+													"NAME"              => $name,
+													"EMAIL"             => $email,
+													"LOGIN"             => $email,
+													"ACTIVE"            => "Y",
+													"GROUP_ID"          => $groups,
+													"PASSWORD"          => $pass,
+													"CONFIRM_PASSWORD"  => $pass,
+												);
+
+												$ID = $user->Add($arFields);
+												if (intval($ID) > 0) {
+													$USER->Authorize($ID);													
+												} 
 											
+											}
+											if ($USER > 0){
 											$order->setBasket($basket);
 											
 											if ($comment) {
 												$order->setField('USER_DESCRIPTION', $comment); // Устанавливаем поля комментария покупателя
 											}
-											
 											
 											$shipmentCollection = $order->getShipmentCollection();
 											$shipment = $shipmentCollection->createItem(
@@ -912,10 +911,11 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 											{ 
 												var_dump($r->getErrorMessages());
 											}
-											
-										}}
+										
+									}}
 									?>
 								
+
 									<?php
 									break;
 							}
