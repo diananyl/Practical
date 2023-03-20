@@ -713,6 +713,10 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 														href="javascript:void(0);">
 														<?=$arParams['MESS_BTN_ADD_TO_BASKET']?>
 													</a>
+													<a class="btn one click order <?=$buyOneClickButton?> product-item-detail-buy-button-one-click"
+														id="btnOneClick"
+														href="javascript:void(0)">  Купить в один клик
+													</a>
 													
 												</div>
 												<?php
@@ -729,8 +733,7 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 													</a>
 													<a class="btn one click order <?=$buyOneClickButton?> product-item-detail-buy-button-one-click"
 														id="btnOneClick"
-														href="javascript:void(0)" onclick="openFormPopup()"> 
-														Купить в один клик
+														href="javascript:void(0)">  Купить в один клик
 													</a>
 												</div>
 												
@@ -770,37 +773,41 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 										<?php
 									}
 									?>
+									<script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
 									<div class="mb-3" id="<?=$itemIds['NOT_AVAILABLE_MESS']?>" style="display: <?=(!$actualItem['CAN_BUY'] ? '' : 'none')?>;">
 										<a class="btn btn-primary product-item-detail-buy-button" href="javascript:void(0)" rel="nofollow"><?=$arParams['MESS_NOT_AVAILABLE']?></a>
 									</div>
+									
+									
+										
 									<div class="pop_up" id="popUp">
 										<div class="pop_up_body" id="popUpBody">										
 											<div class="pop_up_content" id="pop_up_content">
 												<div class="pop_up_header">
 													<h3	class="pop_up_header_title">Купить в один клик</h3>
 												</div>																						
-												<form id="one_click_form" name="one_click_form" action="/one_click_order/handler.php" method="POST">
-													<input type="text" placeholder="Ваше имя">
-													<input type="text" placeholder="Ваш E-mail">
-													<textarea class="pop_up_comment" placeholder="Комментарий к заказу"></textarea>
-													<button class="pop_up_btn">Оформить заказ</button>													
+												<form id="one_click_form" name="one_click_form" method="post">
+												<input type="hidden" name="product_id" value="<?= $ID ?>">
+													<input type="text" name="user_name" placeholder="Ваше имя">
+													<input type="text" name="user_email" placeholder="Ваш E-mail">
+													<textarea class="pop_up_comment" name="user_comment" placeholder="Комментарий к заказу"></textarea>
+													<button type="submit" id="btn_order_pop_up" class="pop_up_btn" name="pop_up_btn_order" onclick="new_order">Оформить заказ</button>													
 												</form>
 												<div class="pop_up_close" id="popupclose">&#10006</div>
 												
 											</div>
 										</div>
 									</div>
+									
 									<script>
 										let popup=document.getElementById('popUp'),
 											popupbody=document.getElementById('popUpBody'),
 											popupButton=document.getElementById('btnOneClick'),
-											popupClose = document.getElementById('popupclose');
-											
+											popupClose = document.getElementById('popupclose');					
 
 											popupButton.onclick = function(){
 												popup.style.display="block";
 											}
-
 											popupClose.onclick = function () {
 												popup.style.display="none";
 											}
@@ -811,6 +818,104 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 												}
 											}
 									</script>
+									<!--Код создания нового пользователя через окно быстрой покупки-->
+									<?php
+							
+									?>
+									<!--Код создания заказа в карточке товара-->
+									<?php
+										if (isset($_POST['pop_up_btn_order'])){
+											
+
+											$comment= $_REQUEST['user_comment'];
+											$email = $_REQUEST['user_email'];
+											$name = $_REQUEST['user_name'];											
+												
+											$products = [
+												[
+													'PRODUCT_ID' =>  $arResult['ID'], 
+													'PRODUCT_PROVIDER_CLASS' => '\Bitrix\Catalog\Product\CatalogProvider',
+													'NAME' => $arResult['NAME'], 
+													'PRICE' => $arResult['PRICES'], 
+													'CURRENCY' => 'RUB', 
+													'QUANTITY' => 1, 
+												]
+											];
+										
+											
+											$basket = Bitrix\Sale\Basket::create('s1');
+											
+											foreach ($products as $product)
+											{
+												$item = $basket->createItem("catalog", $product["PRODUCT_ID"]);
+												unset($product["PRODUCT_ID"]); 
+												$item->setFields($product);
+											}
+											
+											$siteId = 's1'; // код сайта
+											
+											$userId = $USER->GetID(); // ID пользователя
+											if(!$userId )
+														{															
+															$pass = rand(100000, 999999);														
+															$groups = array(3,4,5);         
+															$userId = $USER->Add(array(
+																"NAME"              => $_POST['user_name'],
+																"EMAIL"             => $_POST['user_email'],
+																"LOGIN"             => $_POST['user_email'],																
+																"LID"               => "ru",
+																"ACTIVE"            => "Y",
+																"GROUP_ID"          => $groups,
+																"PASSWORD"          => $pass,
+																"CONFIRM_PASSWORD"  => $pass,
+															));
+															$USER->Authorize($userId);
+															$error_text = $USER->LAST_ERROR;
+														}
+														if ($userId > 0){
+											$order = \Bitrix\Sale\Order::create($siteId, $userId);
+											
+											$order->setPersonTypeId(1); // 1 - ID типа плательщика
+											
+											$order->setBasket($basket);
+											
+											if ($comment) {
+												$order->setField('USER_DESCRIPTION', $comment); // Устанавливаем поля комментария покупателя
+											}
+											
+											
+											$shipmentCollection = $order->getShipmentCollection();
+											$shipment = $shipmentCollection->createItem(
+												Bitrix\Sale\Delivery\Services\Manager::getObjectById(1) // 1 - ID службы доставки
+											);
+											
+											$shipmentItemCollection = $shipment->getShipmentItemCollection();
+											
+											foreach ($basket as $basketItem)
+											{
+												$item = $shipmentItemCollection->createItem($basketItem);
+												$item->setQuantity($basketItem->getQuantity());
+											}
+											
+											$paymentCollection = $order->getPaymentCollection();
+											$payment = $paymentCollection->createItem(
+												Bitrix\Sale\PaySystem\Manager::getObjectById(1) // 1 - ID платежной системы
+											);
+									
+											$r = $order->setField('COMMENTS', 'Заказ в один клик');	//Добавление комментария по заданию					
+																					
+											$payment->setField("SUM", $order->getPrice());
+											$payment->setField("CURRENCY", $order->getCurrency());
+											
+											$r = $order->save();
+											if (!$r->isSuccess())
+											{ 
+												var_dump($r->getErrorMessages());
+											}
+											
+										}}
+									?>
+								
 									<?php
 									break;
 							}
