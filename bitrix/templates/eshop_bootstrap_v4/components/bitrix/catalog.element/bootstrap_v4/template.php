@@ -787,10 +787,11 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 													<h3	class="pop_up_header_title">Купить в один клик</h3>
 												</div>																						
 												<form id="one_click_form" name="one_click_form" method="post">
+											
 													<input type="text" name="user_name" placeholder="Ваше имя">
 													<input type="text" name="user_email" placeholder="Ваш E-mail">
 													<textarea class="pop_up_comment" name="user_comment" placeholder="Комментарий к заказу"></textarea>
-													<button type="submit" id="btn_order_pop_up" class="pop_up_btn" name="pop_up_btn_order" onclick="new_order">Оформить заказ</button>													
+													<button type="submit" id="btn_order_pop_up" class="pop_up_btn" name="pop_up_btn_order" >Оформить заказ</button>													
 												</form>
 												<div class="pop_up_close" id="popupclose">&#10006</div>
 												
@@ -825,23 +826,30 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 									<?php
 										if (isset($_POST['pop_up_btn_order']) && !empty($_POST['user_name']) && !empty($_POST['user_email'])){
 											
-											$comment= $_REQUEST['user_comment'];
-											$email = $_POST['user_email'];
-											$name = $_POST['user_name'];											
-												
-											$products = [
-												[
-													'PRODUCT_ID' =>  $arResult['ID'], 
-													'PRODUCT_PROVIDER_CLASS' => '\Bitrix\Catalog\Product\CatalogProvider',
-													'NAME' => $arResult['NAME'], 
-													'PRICE' => $arResult['PRICES'], 
-													'CURRENCY' => 'RUB', 
-													'QUANTITY' => 1, 
-												]
-											];
-											
+											global $USER;											
+											$email = $_REQUEST['user_email'];
+											$name = $_REQUEST['user_name'];	
+											//если такой email уже есть в базе, создается новый пользователь										
+												if($email!=$USER->GetEmail()){
+													include 'new_user.php';
+													//если новый пользователь создан, создать заказ
+																		
+													
+
+											}else{
+																					
 											$basket = Bitrix\Sale\Basket::create('s1');
-											
+											$products = [
+													[
+														'PRODUCT_ID' =>  $arResult['ID'], 
+														'PRODUCT_PROVIDER_CLASS' => '\Bitrix\Catalog\Product\CatalogProvider',
+														'NAME' => $arResult['NAME'], 
+														'PRICE' => $arResult['PRICES'], 
+														'CURRENCY' => 'RUB', 
+														'QUANTITY' => 1, 
+													]
+											];												
+												
 											foreach ($products as $product)
 											{
 												$item = $basket->createItem("catalog", $product["PRODUCT_ID"]);
@@ -849,36 +857,14 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 												$item->setFields($product);
 											}
 											
-											$siteId = 's1'; // код сайта																		
-																			
-											
-											
-											$order = \Bitrix\Sale\Order::create($siteId, ($USER->IsAuthorized()) ? $USER->GetID() : \CSaleUser::GetAnonymousUserID());
+											$siteId = 's1'; // код сайта																	
+											$userId = 	$USER->GetID(); // ID пользователя
+											$order = \Bitrix\Sale\Order::create($siteId, $userId);
 											$order->setPersonTypeId(1); // 1 - ID типа плательщика
-											if(!$USER){
-												$pass = rand(100000, 999999);
-												//группы, в которых он будет состоять
-												$groups = array(3,4,5);   
-												$user = new CUser;
-												$arFields = Array(
-													"NAME"              => $name,
-													"EMAIL"             => $email,
-													"LOGIN"             => $email,
-													"ACTIVE"            => "Y",
-													"GROUP_ID"          => $groups,
-													"PASSWORD"          => $pass,
-													"CONFIRM_PASSWORD"  => $pass,
-												);
-
-												$ID = $user->Add($arFields);
-												if (intval($ID) > 0) {
-													$USER->Authorize($ID);													
-												} 
 											
-											}
-											if ($USER > 0){
 											$order->setBasket($basket);
-											
+
+											$comment= $_REQUEST['user_comment'];
 											if ($comment) {
 												$order->setField('USER_DESCRIPTION', $comment); // Устанавливаем поля комментария покупателя
 											}
@@ -911,8 +897,8 @@ $themeClass = isset($arParams['TEMPLATE_THEME']) ? ' bx-'.$arParams['TEMPLATE_TH
 											{ 
 												var_dump($r->getErrorMessages());
 											}
-										
-									}}
+										}
+									}
 									?>
 								
 
